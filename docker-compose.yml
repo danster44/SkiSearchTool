@@ -5,45 +5,78 @@ services:
     build: .
     container_name: ski-marketplace-search
     restart: unless-stopped
-    env_file:
-      - .env
+    
+    # Environment variables - can be configured via Portainer UI
     environment:
+      # GitHub Configuration
+      - GITHUB_REPO_URL=${GITHUB_REPO_URL}
+      - GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN}
+      
+      # Telegram Configuration
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      
+      # eBay API (Optional)
+      - EBAY_APP_ID=${EBAY_APP_ID:-}
+      - EBAY_CERT_ID=${EBAY_CERT_ID:-}
+      - EBAY_DEV_ID=${EBAY_DEV_ID:-}
+      
+      # Application Settings
       - DATABASE_URL=sqlite:///data/ski_search.db
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SEARCH_INTERVAL_MINUTES=${SEARCH_INTERVAL_MINUTES:-15}
+      - MAX_NOTIFICATIONS_PER_HOUR=${MAX_NOTIFICATIONS_PER_HOUR:-20}
+      - TZ=${TZ:-America/Los_Angeles}
+    
+    # Persistent volumes
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
       - ./cache:/app/cache
+    
+    # Logging configuration
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    
+    # Resource limits (adjust based on your Proxmox allocation)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import sys; sys.exit(0)' || exit 1"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
     networks:
       - ski-search-network
-
-  # Optional: PostgreSQL database for production
-  # Uncomment if you want to use PostgreSQL instead of SQLite
-  # postgres:
-  #   image: postgres:15-alpine
-  #   container_name: ski-search-db
-  #   restart: unless-stopped
-  #   environment:
-  #     - POSTGRES_USER=skisearch
-  #     - POSTGRES_PASSWORD=your_secure_password_here
-  #     - POSTGRES_DB=ski_search
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   networks:
-  #     - ski-search-network
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U skisearch"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+    
+    # Labels for Portainer
+    labels:
+      - "com.portainer.description=Automated ski marketplace search with Telegram notifications"
+      - "com.portainer.group=monitoring"
 
 networks:
   ski-search-network:
     driver: bridge
+    name: ski-search-network
 
-# volumes:
-#   postgres_data:
+# Volumes can be managed via Portainer
+volumes:
+  data:
+    driver: local
+  logs:
+    driver: local
+  cache:
+    driver: local

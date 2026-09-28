@@ -26,6 +26,20 @@ Looking for **K2 Way Back 92 skis** in **160-168cm** range? This tool will find 
 
 ### Installation
 
+#### Recommended: Portainer on Proxmox
+
+The easiest way to deploy is using Portainer on a Proxmox LXC container:
+
+1. **Create Ubuntu LXC** in Proxmox (enable "Nesting" feature)
+2. **Install Docker** in the container
+3. **Deploy via Portainer UI** - point to this repo
+4. **Configure** environment variables in Portainer
+5. **Done!** No command-line needed
+
+See **[PORTAINER_DEPLOYMENT.md](PORTAINER_DEPLOYMENT.md)** for complete step-by-step guide.
+
+#### Alternative: Docker Compose (VPS, Raspberry Pi, etc.)
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/SkiSearchTool.git
@@ -37,10 +51,16 @@ cp .env.example .env
 # Edit .env with your credentials (see SETUP.md for details)
 nano .env
 
-# Option 1: Docker (Recommended)
+# Deploy with Docker
 docker-compose up -d
 
-# Option 2: Python Virtual Environment
+# View logs
+docker-compose logs -f
+```
+
+#### Alternative: Python Virtual Environment (Development)
+
+```bash
 python -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
@@ -57,8 +77,12 @@ See **[SETUP.md](SETUP.md)** for detailed step-by-step instructions including:
 
 ## Documentation
 
+- **[PORTAINER_DEPLOYMENT.md](PORTAINER_DEPLOYMENT.md)** ⭐ - Complete Portainer deployment guide (RECOMMENDED)
+- **[SETUP.md](SETUP.md)** - Step-by-step setup guide for all deployment methods
 - **[DESIGN.md](DESIGN.md)** - Comprehensive system architecture and design documentation
-- **[SETUP.md](SETUP.md)** - Step-by-step setup guide
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick commands and configuration reference
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Module organization and development guide
+- **[ROADMAP.md](ROADMAP.md)** - Implementation phases and development roadmap
 - **[criteria/ski_search.yaml](criteria/ski_search.yaml)** - Example search criteria file
 
 ## How It Works

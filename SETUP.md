@@ -2,14 +2,27 @@
 
 This guide will walk you through setting up the ski marketplace search tool step by step.
 
+> **Recommended Deployment:** Docker with Portainer on Proxmox  
+> See **[PORTAINER_DEPLOYMENT.md](PORTAINER_DEPLOYMENT.md)** for the easiest setup experience.
+
+## Deployment Options
+
+Choose your deployment method:
+
+- **🎯 Portainer on Proxmox** (Recommended) - UI-based, easiest to manage → [PORTAINER_DEPLOYMENT.md](PORTAINER_DEPLOYMENT.md)
+- **🐳 Docker Compose** - Command-line, works anywhere → This guide, Section 4
+- **🐍 Python** - Development only → This guide, Section 4
+
+---
+
 ## Prerequisites
 
-- **Python 3.10 or higher**
+- **Python 3.10 or higher** (for Python deployment) or **Docker** (for container deployment)
 - **Git**
 - **GitHub account** (for storing search criteria)
 - **Telegram account** (for receiving notifications)
-- *Optional:* Docker (for containerized deployment)
-- *Optional:* eBay developer account (for eBay API access)
+- *Optional:* **Proxmox + Portainer** (for recommended deployment)
+- *Optional:* **eBay developer account** (for eBay API access)
 
 ---
 

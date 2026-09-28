@@ -850,150 +850,209 @@ class HealthMonitor:
 
 ## 10. Deployment Options
 
-### 10.1 Option A: Home Server / Raspberry Pi
+### 10.1 Recommended: Docker on Proxmox with Portainer ⭐
+
+**This is the primary deployment method** - containerized, easy to manage, and works great on shared Proxmox infrastructure.
 
 **Pros:**
-- Always-on
-- No cloud costs
-- Full control
-- Low latency
+- Easy deployment via Portainer UI
+- No command-line needed after initial setup
+- Persistent storage with volume management
+- Resource limits configurable via UI
+- Health monitoring built-in
+- Easy updates and rollbacks
+- Minimal resource usage (~128-512MB RAM)
+- Works on shared Proxmox infrastructure
 
 **Cons:**
-- Requires home network setup
-- Power/internet outages affect service
-- Maintenance responsibility
-
-**Setup:**
-```bash
-# Install on Raspberry Pi 4
-sudo apt update && sudo apt upgrade
-sudo apt install python3-pip python3-venv sqlite3
-
-# Create virtual environment
-python3 -m venv /opt/ski-search/venv
-source /opt/ski-search/venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up systemd service
-sudo systemctl enable ski-search.service
-sudo systemctl start ski-search.service
-```
-
----
-
-### 10.2 Option B: Cloud VPS (DigitalOcean, Linode, AWS EC2)
-
-**Pros:**
-- High reliability
-- Remote access
-- Scalable
-
-**Cons:**
-- Monthly cost ($5-20/month)
-- Requires cloud account
-
-**Recommendation:** DigitalOcean $6/month droplet or AWS t3.micro
-
----
-
-### 10.3 Option C: Serverless (AWS Lambda + EventBridge)
-
-**Pros:**
-- Pay per execution (very cheap for periodic searches)
-- No server maintenance
-- Auto-scaling
-
-**Cons:**
-- Cold starts
-- 15-minute execution limit
-- More complex setup
+- Requires Proxmox and Portainer setup
+- Needs LXC container with Docker support
 
 **Architecture:**
 ```
-EventBridge Rule (every 15 min)
-    ↓
-Lambda Function (Python)
-    ↓
-    ├─ Pull criteria from GitHub
-    ├─ Search marketplaces
-    ├─ Store results in DynamoDB
-    └─ Send Telegram notifications
+Proxmox Host
+  └─ LXC Container (Ubuntu/Debian)
+      └─ Docker
+          ├─ Portainer (Management UI)
+          └─ Ski Search Container
+              ├─ Python Application
+              ├─ SQLite Database (persistent volume)
+              └─ Logs (persistent volume)
 ```
+
+**Quick Setup:**
+
+1. **Create LXC Container in Proxmox:**
+   - OS: Ubuntu 22.04 LTS
+   - RAM: 1GB (512MB minimum)
+   - Cores: 1-2
+   - Storage: 8GB
+   - **Important:** Enable "Nesting" feature (required for Docker)
+
+2. **Install Docker in LXC:**
+   ```bash
+   apt update && apt upgrade -y
+   apt install -y docker.io docker-compose
+   systemctl enable --now docker
+   ```
+
+3. **Install Portainer (if not already available):**
+   ```bash
+   docker run -d \
+     --name=portainer \
+     --restart=always \
+     -p 9000:9000 \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     -v portainer_data:/data \
+     portainer/portainer-ce:latest
+   ```
+
+4. **Deploy via Portainer UI:**
+   - Access Portainer: `http://<LXC-IP>:9000`
+   - Navigate to Stacks → Add Stack
+   - Choose "Repository" and point to this GitHub repo
+   - Add environment variables (Telegram, GitHub tokens)
+   - Click Deploy!
+
+**See [PORTAINER_DEPLOYMENT.md](PORTAINER_DEPLOYMENT.md) for complete step-by-step guide.**
+
+**Resource Requirements:**
+- **Idle:** ~50MB RAM, <1% CPU
+- **During Search:** ~200MB RAM, 5-15% CPU
+- **Storage:** ~500MB (OS + app + database)
 
 ---
 
-### 10.4 Option D: Docker Container (Recommended)
+### 10.2 Alternative: Cloud VPS with Docker
 
-**Pros:**
-- Portable
-- Easy deployment
-- Consistent environment
-- Works on any platform
+**Use case:** When you don't have Proxmox or want cloud-hosted
 
-**Dockerfile:**
-```dockerfile
-FROM python:3.11-slim
+**Providers:**
+- **DigitalOcean:** $6/month Droplet
+- **Linode:** $5/month Nanode
+- **Hetzner Cloud:** €4.5/month CX11
+- **Oracle Cloud:** Free tier (ARM instances)
 
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    chromium \
-    chromium-driver \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Create data directory for database
-RUN mkdir -p /app/data
-
-# Run the application
-CMD ["python", "main.py"]
-```
-
-**docker-compose.yml:**
-```yaml
-version: '3.8'
-
-services:
-  ski-search:
-    build: .
-    container_name: ski-marketplace-search
-    restart: unless-stopped
-    environment:
-      - GITHUB_REPO_URL=${GITHUB_REPO_URL}
-      - GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      - EBAY_APP_ID=${EBAY_APP_ID}
-      - DATABASE_URL=sqlite:///data/ski_search.db
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-```
-
-**Deployment:**
+**Setup:**
 ```bash
-# Start the container
+# On Ubuntu 22.04 VPS:
+apt update && apt install -y docker.io docker-compose git
+
+# Clone repo
+git clone https://github.com/yourusername/SkiSearchTool.git
+cd SkiSearchTool
+
+# Configure
+cp .env.example .env
+nano .env  # Add your credentials
+
+# Deploy
 docker-compose up -d
 
 # View logs
 docker-compose logs -f
+```
 
-# Stop the container
+---
+
+### 10.3 Alternative: Raspberry Pi (Docker)
+
+**Use case:** Home lab, always-on personal server
+
+**Pros:**
+- Low power consumption (~5W)
+- One-time $75 cost
+- Physical control
+
+**Setup:**
+```bash
+# On Raspberry Pi OS:
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+
+# Deploy same as VPS
+docker-compose up -d
+```
+
+---
+
+### 10.4 Alternative: Kubernetes/k3s (Advanced)
+
+**Use case:** Already running k3s/k8s cluster
+
+**Deployment via Helm chart or kubectl:**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ski-search
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: ski-search
+        image: ski-search:latest
+        env:
+        - name: GITHUB_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ski-search-secrets
+              key: github-token
+```
+
+---
+
+### 10.5 Not Recommended: Serverless
+
+**Why not recommended:**
+- Stateful application (database, seen listings)
+- Long-running scrapers (especially Facebook with browser automation)
+- 15-minute Lambda timeout too restrictive
+- Cold starts affect scheduling reliability
+
+**If you must:** Consider AWS Fargate + EFS for persistent storage
+
+---
+
+### 10.6 Deployment Comparison
+
+| Method | Cost/Month | Setup Complexity | Maintenance | Recommended For |
+|--------|------------|------------------|-------------|-----------------|
+| **Proxmox + Portainer** | $0 (shared) | Low (UI-based) | Very Low | ⭐ Most users |
+| Cloud VPS + Docker | $5-6 | Medium | Low | No Proxmox access |
+| Raspberry Pi + Docker | $0 (after $75) | Medium | Low | Home lab enthusiasts |
+| Kubernetes | Varies | High | Medium | k8s users only |
+| Serverless | $1-2 | Very High | Medium | ❌ Not suitable |
+
+---
+
+### Primary Deployment Guide
+
+**For the recommended Proxmox + Portainer setup, follow these docs:**
+
+1. **[PORTAINER_DEPLOYMENT.md](PORTAINER_DEPLOYMENT.md)** - Complete Portainer guide
+2. **[SETUP.md](SETUP.md)** - Initial configuration (Telegram, GitHub)
+3. **[docker-compose.yml](docker-compose.yml)** - Production-ready compose file
+
+**Quick commands:**
+```bash
+# Start
+docker-compose up -d
+
+# Logs
+docker-compose logs -f
+
+# Stop
 docker-compose down
+
+# Update
+docker-compose pull && docker-compose up -d
+
+# Backup database
+docker exec ski-marketplace-search \
+  sqlite3 /app/data/ski_search.db ".backup /tmp/backup.db"
 ```
 
 ---
