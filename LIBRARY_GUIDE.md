@@ -227,6 +227,105 @@ with sync_playwright() as p:
 
 ---
 
+### 4. ShopGoodwill: `requests` + `beautifulsoup4` (Custom Scraper)
+
+**Website:** https://shopgoodwill.com  
+**Method:** Web scraping (no official API)  
+**License:** N/A (public website)  
+**Status:** ✅ Stable HTML structure
+
+**Why This Approach:**
+- No official API available
+- No existing Python library
+- Simple HTML structure (easy to parse)
+- BeautifulSoup is lightweight and reliable
+- ShopGoodwill has online auctions for sporting goods
+
+**About ShopGoodwill:**
+- Online auction site run by Goodwill stores
+- Ships nationwide
+- Has dedicated "Sporting Goods" category
+- Includes skis, boots, bindings, etc.
+- Auction format (like eBay)
+
+**Installation:**
+```bash
+pip install requests beautifulsoup4  # Already in requirements
+```
+
+**Quick Example:**
+```python
+import requests
+from bs4 import BeautifulSoup
+
+def search_shopgoodwill(query, max_price=500):
+    """Search ShopGoodwill.com for items"""
+    # Category 69 = Sporting Goods
+    url = f"https://shopgoodwill.com/search?searchText={query}&categoryId=69"
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
+    }
+    
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    listings = []
+    items = soup.find_all('div', class_='product-tile')
+    
+    for item in items:
+        try:
+            title = item.find('p', class_='product-title').text.strip()
+            price_text = item.find('span', class_='current-price').text
+            price = float(price_text.strip().replace('$', '').replace(',', ''))
+            
+            if price <= max_price:
+                link = item.find('a', class_='product-link')['href']
+                listings.append({
+                    'title': title,
+                    'price': price,
+                    'url': f"https://shopgoodwill.com{link}",
+                    'source': 'shopgoodwill',
+                    'type': 'auction'
+                })
+        except:
+            continue
+    
+    return listings
+
+# Usage
+skis = search_shopgoodwill('touring skis', max_price=400)
+print(f"Found {len(skis)} auctions")
+```
+
+**Features:**
+- ✅ Nationwide shipping available
+- ✅ Auction format (can get great deals)
+- ✅ Simple HTML structure
+- ✅ Search by category
+- ✅ Often cheaper than other marketplaces
+
+**Rate Limiting:**
+- Recommended: 1 search per 5 minutes
+- Use proper User-Agent header
+- Be respectful of their servers
+
+**Advantages:**
+- Thrift store prices (often very cheap)
+- Supporting Goodwill mission
+- Ships anywhere in US
+- Good for used gear deals
+
+**Disadvantages:**
+- Auction format (need to bid and wait)
+- Used/as-is condition
+- Limited return policy
+- Need to monitor auction end times
+
+**Cost:** FREE (web scraping, public data)
+
+---
+
 ## 📊 Library Comparison
 
 | Marketplace | Library | Type | API/Scrape | Free Tier | Reliability | Maintenance |
@@ -234,6 +333,7 @@ with sync_playwright() as p:
 | **Craigslist** | python-craigslist | Wrapper | Scrape | Unlimited | ⭐⭐⭐⭐ | ✅ Active |
 | **eBay** | ebaysdk-python | Official | API | 5k/day | ⭐⭐⭐⭐⭐ | ✅ Official |
 | **Facebook** | playwright | Automation | Browser | Unlimited | ⭐⭐⭐⭐ | ✅ Microsoft |
+| **ShopGoodwill** | requests + bs4 | Custom | Scrape | Unlimited | ⭐⭐⭐ | ⚠️ Custom |
 
 ---
 
@@ -254,15 +354,19 @@ with sync_playwright() as p:
 - 1 × 96 searches = 96 requests/day
 - Status: ✅ No problem (with conservative rate limiting)
 
+**ShopGoodwill:**
+- 1 × 96 searches = 96 requests/day
+- Status: ✅ No problem (be respectful with rate limiting)
+
 ---
 
 ## 💰 Total Cost
 
 **All Libraries:** $0/month
 
-All three libraries are:
+All four marketplace integrations are:
 - Free to use
-- Open source
+- Open source (or public websites)
 - No paid tiers needed
 - No API fees
 - No rate limit concerns for our use case

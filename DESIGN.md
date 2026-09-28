@@ -503,7 +503,15 @@ def safe_craigslist_search(region, query):
 
 ### 3.4 Additional Marketplace Considerations
 
-**Potential Additional Sources:**
+**Currently Supported:**
+- **ShopGoodwill.com**: ✅ Online auction site run by Goodwill stores
+  - Nationwide shipping
+  - Sporting Goods category includes skis/gear
+  - Often very cheap (thrift store prices)
+  - Simple HTML scraping (no library needed)
+  - Auction format (like eBay)
+
+**Potential Future Sources:**
 - **Geartrade.com**: Outdoor gear marketplace (has API potential)
 - **Pinkbike Buy/Sell**: Popular for outdoor sports equipment
 - **TGR Sell/Trade Forum**: Teton Gravity Research forums

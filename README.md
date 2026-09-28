@@ -146,6 +146,7 @@ All marketplaces use **free, proven, open-source libraries**:
 |-------------|--------|---------|--------|------|
 | **eBay** | ✅ Ready | ebaysdk-python (Official) | API | FREE (5k calls/day) |
 | **Craigslist** | ✅ Ready | python-craigslist | Library | FREE (unlimited) |
+| **ShopGoodwill** | ✅ Ready | requests + BeautifulSoup | Scraper | FREE (unlimited) |
 | **Facebook Marketplace** | 🚧 Planned | playwright (Microsoft) | Browser | FREE (unlimited) |
 | Geartrade | 🔜 Future | TBD | TBD | TBD |
 | Pinkbike | 🔜 Future | TBD | TBD | TBD |

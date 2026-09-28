@@ -58,35 +58,51 @@ price:
   notes: "Alert immediately if under $250"
 
 location:
-  max_distance: 500
+  max_distance: 180  # ~3 hours driving from NYC
   unit: miles
-  from: "98101"  # Seattle ZIP - UPDATE THIS
+  from: "10001"  # NYC ZIP - UPDATE to your exact location
   
   preferred_regions:
-    - "Washington"
-    - "Oregon"
-    - "Colorado"
-    - "Utah"
-    - "California"
-    - "Montana"
+    - "New York"
+    - "New Jersey"
+    - "Pennsylvania"
+    - "Connecticut"
+    - "Massachusetts"
+    - "Vermont"
+    - "New Hampshire"
   
-  notes: "Willing to travel or pay for shipping within reason"
+  notes: "Within ~3 hours of NYC, or willing to pay for shipping"
 
 marketplaces:
-  - name: "facebook"
-    enabled: true
-  - name: "ebay"
-    enabled: true
   - name: "craigslist"
     enabled: true
     regions:
-      - "seattle"
-      - "portland"
-      - "spokane"
-      - "denver"
-      - "boulder"
-      - "saltlakecity"
-      - "bozeman"
+      - "newyork"        # NYC
+      - "newjersey"      # North Jersey
+      - "jerseyshore"    # Shore area
+      - "philadelphia"   # PA
+      - "poconos"        # PA mountains
+      - "hudsonvalley"   # NY
+      - "longisland"     # NY
+      - "westchester"    # NY
+      - "newhaven"       # CT
+      - "hartford"       # CT
+      - "albany"         # NY
+      - "vermont"        # VT (ski country!)
+      - "newhampshire"   # NH (ski country!)
+      - "boston"         # MA
+  
+  - name: "ebay"
+    enabled: true
+    notes: "Nationwide shipping, focus on 'local pickup' or reasonable shipping"
+  
+  - name: "facebook"
+    enabled: true
+    notes: "NYC metro area and surrounding ski regions"
+  
+  - name: "shopgoodwill"
+    enabled: true
+    notes: "Nationwide auctions, often great deals on used gear"
 
 notification:
   telegram: true
@@ -97,7 +113,7 @@ notification:
   urgency_indicators:
     great_price_threshold: 250
     just_posted_minutes: 60
-    local_distance_miles: 100
+    local_distance_miles: 50  # Within 50 miles = very urgent
 
 search_frequency:
   interval: 15
@@ -109,3 +125,6 @@ notes: |
   Width: 92mm preferred, but 90-94mm acceptable
   Condition: Good or better
   Price: Under $500, ideally under $250
+  
+  Location: NYC area, willing to drive ~3 hours (includes VT/NH ski country)
+  Also open to shipping from anywhere in US via eBay/ShopGoodwill
