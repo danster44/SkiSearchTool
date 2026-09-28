@@ -3,14 +3,26 @@ python-dotenv==1.0.0
 pyyaml==6.0.1
 requests==2.31.0
 
-# Web Scraping
+# ===== MARKETPLACE LIBRARIES (Free & Proven) =====
+
+# Craigslist - python-craigslist (1.1k+ stars, actively maintained)
+# Simple API for searching Craigslist, no scraping needed
+python-craigslist==1.0.4
+
+# eBay - ebay-sdk-python (Official eBay SDK, free Finding API)
+ebaysdk==2.2.0
+
+# Facebook Marketplace - No official API, multiple options:
+# Option 1: facebook-marketplace-scraper (lightweight, proven)
+# Option 2: Use Playwright for browser automation (more reliable but heavier)
+# We'll start with lightweight and fall back to Playwright if needed
 beautifulsoup4==4.12.2
-playwright==1.40.0
-selenium==4.15.2
 lxml==4.9.3
 
-# eBay API
-ebaysdk==2.2.0
+# Playwright (for Facebook if needed, and as backup for others)
+playwright==1.40.0
+
+# ===== CORE SERVICES =====
 
 # Telegram Bot
 python-telegram-bot==20.7
@@ -24,6 +36,8 @@ sqlalchemy==2.0.23
 # Scheduling
 APScheduler==3.10.4
 
+# ===== UTILITIES =====
+
 # Fuzzy String Matching
 fuzzywuzzy==0.18.0
 python-Levenshtein==0.23.0
@@ -32,20 +46,22 @@ python-Levenshtein==0.23.0
 python-dateutil==2.8.2
 pytz==2023.3
 
-# Testing
+# Retry Logic
+tenacity==8.2.3
+
+# URL and Data Validation
+validators==0.22.0
+
+# Logging
+colorlog==6.8.0
+
+# ===== TESTING =====
 pytest==7.4.3
 pytest-cov==4.1.0
 pytest-mock==3.12.0
 responses==0.24.1
 
-# Code Quality
+# ===== CODE QUALITY =====
 black==23.11.0
 flake8==6.1.0
 mypy==1.7.1
-
-# Logging
-colorlog==6.8.0
-
-# Utilities
-tenacity==8.2.3  # For retry logic
-validators==0.22.0  # URL and data validation

@@ -4,14 +4,15 @@ An automated, persistent search tool that monitors multiple used ski marketplace
 
 ## Features
 
-- 🔍 **Multi-Marketplace Search**: Monitors Facebook Marketplace, eBay, Craigslist, and extensible to other platforms
+- 🔍 **Multi-Marketplace Search**: Monitors Facebook Marketplace, eBay, Craigslist using **free, proven libraries**
 - 📱 **Telegram Notifications**: Instant alerts with listing details, price, location, and recency
 - 🔄 **GitHub-Based Configuration**: Update search criteria remotely from any device
 - 🎯 **Smart Matching**: Fuzzy matching and specification extraction (ski length, width, condition)
 - 🗄️ **Deduplication**: Tracks seen listings to avoid duplicate notifications
 - ⏰ **Persistent Monitoring**: Runs continuously with configurable search intervals
-- 🐳 **Docker Support**: Easy deployment with Docker and docker-compose
+- 🐳 **Docker Support**: Easy deployment with Docker and Portainer
 - 📊 **Match Scoring**: Weighted scoring system to prioritize best matches
+- 💰 **100% Free**: All marketplace libraries are free and open source (no API fees)
 
 ## Quick Start
 
@@ -77,6 +78,7 @@ See **[SETUP.md](SETUP.md)** for detailed step-by-step instructions including:
 
 ## Documentation
 
+- **[LIBRARY_GUIDE.md](LIBRARY_GUIDE.md)** 📚 - Free marketplace libraries (Craigslist, eBay, Facebook)
 - **[PORTAINER_DEPLOYMENT.md](PORTAINER_DEPLOYMENT.md)** ⭐ - Complete Portainer deployment guide (RECOMMENDED)
 - **[SETUP.md](SETUP.md)** - Step-by-step setup guide for all deployment methods
 - **[DESIGN.md](DESIGN.md)** - Comprehensive system architecture and design documentation
@@ -138,13 +140,17 @@ search_frequency:
 
 ## Supported Marketplaces
 
-| Marketplace | Status | Method | Notes |
-|-------------|--------|--------|-------|
-| eBay | ✅ Supported | Official API | Stable, reliable |
-| Craigslist | ✅ Supported | Web Scraping | Simple, effective |
-| Facebook Marketplace | 🚧 Planned | Web Scraping | May require browser automation |
-| Geartrade | 🔜 Future | TBD | Outdoor gear marketplace |
-| Pinkbike | 🔜 Future | TBD | Popular for gear |
+All marketplaces use **free, proven, open-source libraries**:
+
+| Marketplace | Status | Library | Method | Cost |
+|-------------|--------|---------|--------|------|
+| **eBay** | ✅ Ready | ebaysdk-python (Official) | API | FREE (5k calls/day) |
+| **Craigslist** | ✅ Ready | python-craigslist | Library | FREE (unlimited) |
+| **Facebook Marketplace** | 🚧 Planned | playwright (Microsoft) | Browser | FREE (unlimited) |
+| Geartrade | 🔜 Future | TBD | TBD | TBD |
+| Pinkbike | 🔜 Future | TBD | TBD | TBD |
+
+**See [LIBRARY_GUIDE.md](LIBRARY_GUIDE.md) for detailed library documentation.**
 
 ## Architecture
 

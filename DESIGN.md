@@ -79,16 +79,28 @@ A persistent, automated search tool that continuously monitors multiple used ski
 
 ### Technology Stack Recommendations
 - **Language**: Python 3.10+ (rich ecosystem for web scraping, APIs, scheduling)
-- **Web Scraping**: 
-  - `playwright` or `selenium` (for JavaScript-heavy sites like Facebook)
-  - `beautifulsoup4` + `requests` (for simpler sites like Craigslist)
+
+- **Marketplace Libraries** (All FREE & Proven):
+  - **Craigslist**: `python-craigslist` (1.1k+ stars, clean API, multi-region)
+  - **eBay**: `ebaysdk-python` (Official SDK, 5k free calls/day)
+  - **Facebook**: `playwright` (60k+ stars, Microsoft-maintained, handles JS)
+
 - **API Integration**: 
-  - `ebay-sdk-python` for eBay API
-  - `python-telegram-bot` for Telegram
+  - `python-telegram-bot` for Telegram notifications
+  - `PyGithub` for GitHub criteria sync
+  
 - **Scheduling**: `APScheduler` or cron-based execution
+
 - **Database**: SQLite for simple deployments, PostgreSQL for production
+
 - **Configuration**: `pyyaml` for criteria files
-- **Version Control**: GitHub API integration via `PyGithub`
+
+- **Utilities**:
+  - `fuzzywuzzy` for fuzzy string matching
+  - `python-dotenv` for environment variables
+  - `tenacity` for retry logic
+
+**See [LIBRARY_GUIDE.md](LIBRARY_GUIDE.md) for detailed library documentation and examples.**
 
 ---
 
@@ -102,96 +114,390 @@ A persistent, automated search tool that continuously monitors multiple used ski
 - No official public API
 - Login may be required for full access
 
-**Strategy:**
-- Use Playwright/Selenium with headless browser
-- Implement rotating user agents
-- Add random delays between requests (3-8 seconds)
-- Store cookies to maintain session
-- Search URL pattern: `https://www.facebook.com/marketplace/[location]/search?query=[keywords]`
+**Recommended Libraries (Free):**
 
-**Implementation Approach:**
+**Option 1: Playwright (Proven, Most Reliable)**
+- **Why:** Mature browser automation, handles JS rendering
+- **Stars:** 60k+ on GitHub
+- **Status:** Actively maintained by Microsoft
+- **Free:** Yes, MIT License
+
+**Option 2: facebook-scraper-api Alternatives**
+- Several community libraries available
+- Less reliable but lighter weight
+- May break with Facebook UI changes
+
+**Implementation Approach (Playwright):**
 ```python
-# Pseudocode
+from playwright.sync_api import sync_playwright
+import time
+import random
+
 def search_facebook_marketplace(criteria):
-    browser = launch_playwright()
-    navigate_to_marketplace(criteria.location)
-    enter_search_query(criteria.keywords)
-    apply_filters(category='sporting_goods', price_range=criteria.price)
-    listings = extract_listings()
-    return parse_listings(listings)
+    """
+    Search Facebook Marketplace using Playwright browser automation.
+    Proven approach that handles JavaScript rendering.
+    """
+    with sync_playwright() as p:
+        # Launch browser (headless for production)
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(
+            user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                      'AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/120.0.0.0 Safari/537.36'
+        )
+        page = context.new_page()
+        
+        # Build search URL
+        location = criteria.location.replace(' ', '%20')
+        query = '+'.join(criteria.keywords.required)
+        url = f"https://www.facebook.com/marketplace/{location}/search?query={query}"
+        
+        # Navigate and wait for content
+        page.goto(url)
+        page.wait_for_selector('[data-testid="marketplace-search-result"]', timeout=10000)
+        
+        # Random delay to appear human
+        time.sleep(random.uniform(2, 4))
+        
+        # Extract listings
+        listings = []
+        items = page.query_selector_all('[data-testid="marketplace-search-result"]')
+        
+        for item in items:
+            try:
+                title = item.query_selector('span').inner_text()
+                price_elem = item.query_selector('[dir="auto"]')
+                price = price_elem.inner_text() if price_elem else 'N/A'
+                link = item.get_attribute('href')
+                
+                listings.append({
+                    'title': title,
+                    'price': parse_price(price),
+                    'url': f"https://www.facebook.com{link}",
+                    'source': 'facebook',
+                    'posted_date': extract_date(item)
+                })
+            except Exception as e:
+                logger.warning(f"Failed to parse FB listing: {e}")
+                continue
+        
+        browser.close()
+        return listings
 ```
 
 **Rate Limiting:** 1 search per 5-10 minutes to avoid detection
+
+**Fallback Strategy:** If Facebook blocks, reduce frequency or require manual cookie setup
 
 ---
 
 ### 3.2 eBay
 
-**Advantages:**
-- Official Finding API available
-- Well-documented
-- Rate limits are reasonable
+**Recommended Library: ebaysdk-python (Official, Free, Proven)**
+- **Why:** Official eBay SDK with Finding API (free tier)
+- **Stars:** 700+ on GitHub
+- **Status:** Maintained by eBay
+- **Free Tier:** 5,000 API calls/day (more than enough)
+- **Documentation:** https://developer.ebay.com/
+- **No scraping needed:** Clean API access
 
-**Strategy:**
-- Use eBay Finding API (free tier: 5,000 calls/day)
-- Implement OAuth 2.0 authentication
-- Search using specific category IDs (Winter Sports equipment)
-- Use aspect filters for ski dimensions
+**Advantages:**
+- Official API with generous free tier
+- Well-documented and maintained
+- Reliable and fast
+- No rate limit concerns (within 5k/day)
+- Structured data (no parsing needed)
 
 **Implementation Approach:**
 ```python
-# Pseudocode
+from ebaysdk.finding import Connection as Finding
+from ebaysdk.exception import ConnectionError
+
 def search_ebay(criteria):
-    api = eBayFindingAPI(app_id=config.EBAY_APP_ID)
-    response = api.findItemsAdvanced(
-        keywords="K2 Way Back 92",
-        categoryId="59899",  # Downhill Skiing
-        itemFilter=[
-            {'name': 'Condition', 'value': 'Used'},
-            {'name': 'ListingType', 'value': ['Auction', 'FixedPrice']}
-        ],
-        aspectFilter=[
-            {'name': 'Length', 'value': ['160', '162', '164', '166', '168']}
-        ]
-    )
-    return parse_ebay_response(response)
+    """
+    Search eBay using official Finding API.
+    Free tier: 5,000 calls/day - more than sufficient.
+    """
+    try:
+        api = Finding(
+            appid=config.EBAY_APP_ID,
+            config_file=None,
+            siteid='EBAY-US'  # or EBAY-CA, EBAY-UK, etc.
+        )
+        
+        # Build search request
+        request = {
+            'keywords': ' '.join(criteria.keywords.required),
+            'categoryId': '159049',  # Winter Sports > Downhill Skiing
+            'itemFilter': [
+                {'name': 'Condition', 'value': 'Used'},
+                {'name': 'MaxPrice', 'value': criteria.price.max},
+                {'name': 'MinPrice', 'value': '50'},
+                {'name': 'ListingType', 'value': ['Auction', 'FixedPrice']},
+            ],
+            'outputSelector': ['AspectHistogram', 'SellerInfo'],
+            'paginationInput': {
+                'entriesPerPage': 100,
+                'pageNumber': 1
+            },
+            'sortOrder': 'StartTimeNewest'  # Most recent first
+        }
+        
+        # Optional: Add aspect filters for ski specs
+        # Note: Aspects vary by category, need to discover them first
+        if criteria.specifications.length:
+            request['aspectFilter'] = [
+                {
+                    'aspectName': 'Length (cm)',
+                    'aspectValueName': [str(l) for l in range(
+                        criteria.specifications.length.min,
+                        criteria.specifications.length.max + 1
+                    )]
+                }
+            ]
+        
+        # Make API call
+        response = api.execute('findItemsAdvanced', request)
+        
+        # Parse response
+        listings = []
+        result = response.dict()
+        
+        if 'searchResult' in result and 'item' in result['searchResult']:
+            items = result['searchResult']['item']
+            
+            for item in items:
+                listings.append({
+                    'title': item['title'],
+                    'price': float(item['sellingStatus']['currentPrice']['value']),
+                    'url': item['viewItemURL'],
+                    'item_id': item['itemId'],
+                    'location': item.get('location', 'N/A'),
+                    'condition': item.get('condition', {}).get('conditionDisplayName', 'N/A'),
+                    'posted_date': parse_ebay_date(item['listingInfo']['startTime']),
+                    'image_url': item.get('galleryURL', None),
+                    'source': 'ebay'
+                })
+        
+        return listings
+        
+    except ConnectionError as e:
+        logger.error(f"eBay API error: {e}")
+        return []
+
+def parse_ebay_date(date_str):
+    """Parse eBay ISO 8601 date: 2024-01-15T10:30:00.000Z"""
+    from dateutil import parser
+    return parser.parse(date_str)
 ```
 
-**Rate Limiting:** 1 search per 2-3 minutes (well within API limits)
+**Rate Limiting:** 
+- Free tier: 5,000 calls/day
+- At 15-min intervals: ~96 calls/day (well within limit)
+- No throttling needed
+- Can search multiple times per interval if desired
+
+**Setup:**
+1. Register at https://developer.ebay.com/
+2. Create Sandbox or Production keyset
+3. Get App ID (Client ID)
+4. Free tier automatically enabled
+
+**Cost:** $0/month (free tier sufficient for personal use)
 
 ---
 
 ### 3.3 Craigslist
 
-**Advantages:**
-- Simple HTML structure
-- No JavaScript required
-- Tolerant of scraping (no official API but scraping is common)
+**Recommended Library: python-craigslist (Free, Proven)**
+- **Why:** Simple, clean API for Craigslist searches
+- **Stars:** 1,100+ on GitHub  
+- **Status:** Actively maintained
+- **Free:** Yes, MIT License
+- **No scraping complexity:** Handles all parsing
+- **Multi-region support:** Built-in
 
-**Strategy:**
-- HTTP requests with BeautifulSoup
-- Search across multiple regional sites
-- RSS feeds available for some searches
-- Respect robots.txt
+**Advantages:**
+- Simple Python API (no manual HTML parsing)
+- Handles pagination automatically
+- Multi-region searches with one call
+- Respects Craigslist's structure
+- RSS feed support
+- Filters built-in (price, location, etc.)
+
+**Installation:**
+```bash
+pip install python-craigslist
+```
 
 **Implementation Approach:**
 ```python
-# Pseudocode
+from craigslist import CraigslistForSale
+import time
+
 def search_craigslist(criteria):
-    regions = ['seattle', 'portland', 'denver', 'saltlakecity', 'bozeman']
+    """
+    Search Craigslist using python-craigslist library.
+    Proven library with 1k+ stars, handles all parsing.
+    """
+    regions = criteria.marketplaces.craigslist.regions or [
+        'seattle', 'portland', 'denver', 'saltlakecity', 'bozeman'
+    ]
+    
     all_listings = []
     
     for region in regions:
-        url = f"https://{region}.craigslist.org/search/sga?query=k2+way+back+92"
-        response = requests.get(url, headers={'User-Agent': 'SkiSearchBot/1.0'})
-        soup = BeautifulSoup(response.content, 'html.parser')
-        listings = extract_craigslist_listings(soup)
-        all_listings.extend(listings)
+        try:
+            # Initialize CraigslistForSale with region
+            cl = CraigslistForSale(
+                site=region,
+                category='sss',  # sporting goods
+                filters={
+                    'query': ' '.join(criteria.keywords.required),
+                    'max_price': criteria.price.max,
+                    'min_price': 50,
+                    'posted_today': False,  # Include older posts
+                    'search_distance': criteria.location.max_distance,
+                    'zip_code': criteria.location.from_zip
+                }
+            )
+            
+            # Get results (automatically handles pagination)
+            results = cl.get_results(
+                sort_by='newest',
+                geotagged=False,
+                limit=100,
+                include_details=True  # Get full listing details
+            )
+            
+            # Parse results
+            for result in results:
+                listing = {
+                    'title': result.get('name', 'N/A'),
+                    'price': parse_price(result.get('price', '$0')),
+                    'url': result.get('url', ''),
+                    'location': result.get('where', 'N/A'),
+                    'posted_date': result.get('datetime'),
+                    'listing_id': extract_id_from_url(result.get('url', '')),
+                    'image_url': result.get('image', None),
+                    'has_image': result.get('has_image', False),
+                    'geotag': result.get('geotag', None),
+                    'source': f'craigslist_{region}'
+                }
+                all_listings.append(listing)
+            
+            # Be respectful - delay between regions
+            time.sleep(2)
+            
+        except Exception as e:
+            logger.error(f"Craigslist search failed for {region}: {e}")
+            continue
     
     return all_listings
+
+def extract_id_from_url(url):
+    """Extract Craigslist post ID from URL"""
+    import re
+    match = re.search(r'/(\d+)\.html', url)
+    return match.group(1) if match else None
+
+def parse_price(price_str):
+    """Parse price string like '$300' to float"""
+    if not price_str or price_str == '$0':
+        return None
+    import re
+    match = re.search(r'\$?([\d,]+)', str(price_str))
+    if match:
+        return float(match.group(1).replace(',', ''))
+    return None
 ```
 
-**Rate Limiting:** 1 search per region per 10 minutes
+**Advanced Usage:**
+```python
+# Search multiple categories
+from craigslist import CraigslistForSale
+
+# Sporting goods
+cl_sporting = CraigslistForSale(site='seattle', category='sss')
+
+# Also check general for sale (sometimes skis listed here)
+cl_general = CraigslistForSale(site='seattle', category='sss')
+
+# Get only posts with images (usually more serious sellers)
+results = cl_sporting.get_results(
+    filters={'has_image': True},
+    limit=50
+)
+```
+
+**Rate Limiting:**
+- Library handles rate limiting internally
+- Recommended: 1 search per region per 10 minutes
+- Use delays between regions (2-5 seconds)
+- Craigslist is generally tolerant of reasonable scraping
+
+**Best Practices:**
+```python
+# Respect Craigslist's servers
+import time
+import random
+
+for region in regions:
+    results = search_region(region)
+    # Random delay between 2-5 seconds
+    time.sleep(random.uniform(2, 5))
+```
+
+**Regions Available:**
+Full list at: https://reference.craigslist.org/Sites
+
+Common ski regions:
+```python
+SKI_REGIONS = [
+    'seattle',        # Washington
+    'portland',       # Oregon
+    'denver',         # Colorado
+    'boulder',        # Colorado
+    'fortcollins',    # Colorado
+    'cosprings',      # Colorado Springs
+    'saltlakecity',   # Utah
+    'provo',          # Utah
+    'bozeman',        # Montana
+    'missoula',       # Montana
+    'spokane',        # Washington
+    'tahoe',          # California/Nevada
+    'reno',           # Nevada
+    'bend',           # Oregon
+    'bellingham',     # Washington
+]
+```
+
+**Error Handling:**
+```python
+from craigslist import CraigslistForSale
+from requests.exceptions import RequestException
+
+def safe_craigslist_search(region, query):
+    """Search with error handling and retry"""
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            cl = CraigslistForSale(site=region, category='sss')
+            results = cl.get_results(filters={'query': query}, limit=100)
+            return list(results)
+            
+        except RequestException as e:
+            logger.warning(f"Attempt {attempt + 1} failed for {region}: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(5 * (attempt + 1))  # Exponential backoff
+            else:
+                logger.error(f"All retries failed for {region}")
+                return []
+```
+
+**Cost:** $0/month (free library, public Craigslist data)
 
 ---
 
