@@ -1,0 +1,111 @@
+search_name: "K2 Way Back 92 Search"
+enabled: true
+priority: high
+
+item_type: skis
+
+keywords:
+  required:
+    - "K2"
+    - ["Way Back", "Wayback", "WayBack"]
+  optional:
+    - "92"
+    - "touring"
+    - "backcountry"
+  exclude:
+    - "broken"
+    - "cracked"
+    - "parts only"
+    - "damaged"
+    - "core shot"
+
+specifications:
+  model:
+    - "Way Back"
+    - "Wayback"
+    - "Way-Back"
+  
+  width_underfoot:
+    min: 90
+    max: 94
+    preferred: 92
+    unit: mm
+  
+  length:
+    min: 160
+    max: 168
+    preferred: [162, 164, 166]
+    unit: cm
+    notes: "1.6-1.68m range preferred"
+  
+  condition:
+    accepted:
+      - "new"
+      - "like new"
+      - "excellent"
+      - "very good"
+      - "good"
+      - "used"
+    excluded:
+      - "for parts"
+      - "damaged"
+      - "poor"
+
+price:
+  max: 500
+  currency: USD
+  alert_if_below: 250
+  notes: "Alert immediately if under $250"
+
+location:
+  max_distance: 500
+  unit: miles
+  from: "98101"  # Seattle ZIP - UPDATE THIS
+  
+  preferred_regions:
+    - "Washington"
+    - "Oregon"
+    - "Colorado"
+    - "Utah"
+    - "California"
+    - "Montana"
+  
+  notes: "Willing to travel or pay for shipping within reason"
+
+marketplaces:
+  - name: "facebook"
+    enabled: true
+  - name: "ebay"
+    enabled: true
+  - name: "craigslist"
+    enabled: true
+    regions:
+      - "seattle"
+      - "portland"
+      - "spokane"
+      - "denver"
+      - "boulder"
+      - "saltlakecity"
+      - "bozeman"
+
+notification:
+  telegram: true
+  email: false
+  
+  match_threshold: 0.6  # Only notify if match score >= 60%
+  
+  urgency_indicators:
+    great_price_threshold: 250
+    just_posted_minutes: 60
+    local_distance_miles: 100
+
+search_frequency:
+  interval: 15
+  unit: minutes
+
+notes: |
+  Looking for K2 Way Back 92 skis for backcountry touring.
+  Length range: 160-168cm (1.6-1.68m)
+  Width: 92mm preferred, but 90-94mm acceptable
+  Condition: Good or better
+  Price: Under $500, ideally under $250

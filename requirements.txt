@@ -1,0 +1,51 @@
+# Core Dependencies
+python-dotenv==1.0.0
+pyyaml==6.0.1
+requests==2.31.0
+
+# Web Scraping
+beautifulsoup4==4.12.2
+playwright==1.40.0
+selenium==4.15.2
+lxml==4.9.3
+
+# eBay API
+ebaysdk==2.2.0
+
+# Telegram Bot
+python-telegram-bot==20.7
+
+# GitHub Integration
+PyGithub==2.1.1
+
+# Database
+sqlalchemy==2.0.23
+
+# Scheduling
+APScheduler==3.10.4
+
+# Fuzzy String Matching
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.23.0
+
+# Date/Time Handling
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+responses==0.24.1
+
+# Code Quality
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Logging
+colorlog==6.8.0
+
+# Utilities
+tenacity==8.2.3  # For retry logic
+validators==0.22.0  # URL and data validation
