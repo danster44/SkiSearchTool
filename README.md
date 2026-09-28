@@ -4,16 +4,16 @@ Automated, persistent search tool to monitor and search for used ski listings ma
 
 
 ### Project Status
- - Design and architecture complete
- - Core search orchestrator
- - GitHub criteria sync
- - Craigslist scraper
- - eBay API integration
- - Facebook Marketplace scraper
- - Telegram notifications
- - Database and deduplication
- - Docker deployment
- - Testing and documentation
+ [] Design and architecture complete
+ [] Core search orchestrator
+ [] GitHub criteria sync
+ [] Craigslist scraper
+ [] eBay API integration
+ [] Facebook Marketplace scraper
+ [] Telegram notifications
+ [] Database and deduplication
+ [] Docker deployment
+ [] Testing and documentation
 
 
 ### Installation
